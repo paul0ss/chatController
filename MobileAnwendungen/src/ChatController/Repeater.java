@@ -7,34 +7,34 @@ import java.util.HashMap;
 
 public class Repeater extends Thread {
 	private int myCommunicationID;
-	private final InputStream recievedStream;
+	private final InputStream recievedStream; //NOT FINAL!!!!
 	private HashMap<Integer, OutputStream> activeOutputStreams;
-	private Communication l;
+	private Communication communication;
 
 	public Repeater(int id, InputStream is, HashMap<Integer, OutputStream> activeOutputStreams, Communication l) {
 		myCommunicationID = id;
 		recievedStream = is;
 		this.activeOutputStreams = activeOutputStreams;
-		this.l = l;
+		this.communication = l;
 		this.start();
 	}
 
 	public void run() {
-		synchronized (l) {
-			while (l.getReading() == true) {
+		synchronized (communication) {
+			while (communication.getReading() == true) {
 				for (Integer i : activeOutputStreams.keySet()) {
 					if (i != myCommunicationID) {
 						try {
-							String msg = l.getLastMessage();
-							l.sendMessage(msg, activeOutputStreams.get(i), true);
+							String msg = communication.getLastMessage();
+							communication.sendMessage(msg, activeOutputStreams.get(i), true);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
 					}
 				}
-				l.notify();
+				communication.notify();
 				try {
-					l.wait();
+					communication.wait();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
